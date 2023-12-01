@@ -1,16 +1,25 @@
-# This is a sample Python script.
+def get_calibration_value_of_a_line(line: str) -> int:
+    first_digit, last_digit = 0, 0
+    for position in range(len(line)):
+        if line[position].isdigit():
+            first_digit = line[position]
+            break
+    for position in reversed(range(len(line))):
+        if line[position].isdigit():
+            last_digit = line[position]
+            break
+    result = int(first_digit) * 10 + int(last_digit)
+    return result
 
-# Press Maiusc+F10 to execute it or replace it with your code.
-# Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
+
+def get_sum_of_all_calibration_values():
+    result = 0
+    with open('input.txt') as input_file:
+        lines = input_file.readlines()
+        for line in lines:
+            result += get_calibration_value_of_a_line(line)
+    return result
 
 
-def print_hi(name):
-    # Use a breakpoint in the code line below to debug your script.
-    print(f'Hi, {name}')  # Press Ctrl+F8 to toggle the breakpoint.
-
-
-# Press the green button in the gutter to run the script.
 if __name__ == '__main__':
-    print_hi('PyCharm')
-
-# See PyCharm help at https://www.jetbrains.com/help/pycharm/
+    print(f'Sum of all calibration values in the input file: ${get_sum_of_all_calibration_values()}')

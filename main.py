@@ -19,8 +19,7 @@ def get_game_id(selected_game: str) -> int:
                 power_of_ten += 1
                 start -= 1
             # verify if the selected color extraction is valid
-            selected = COLORS[color]
-            if number > selected:
+            if number > COLORS[color]:
                 return -1
             else:
                 while selected_game[start] not in [';', ',']:
@@ -59,5 +58,48 @@ def get_total_valid_games():
     return sum_of_valid_ids
 
 
+def get_power_of_set_of_cubes(selected_game: str) -> int:
+    max_values = {'red': 0, 'green': 0, 'blue': 0}
+    start = len(selected_game)
+    end = len(selected_game) + 1
+    while start >= 0:
+        if selected_game[start:end] in COLORS.keys():
+            color = selected_game[start:end]
+            number = 0
+            while not selected_game[start].isdigit():
+                start -= 1
+            number += int(selected_game[start])
+            power_of_ten = 1
+            start -= 1
+            while selected_game[start].isdigit():
+                number += 10 ** power_of_ten * int(selected_game[start])
+                power_of_ten += 1
+                start -= 1
+            # add the new max value
+            if number > max_values[color]:
+                max_values[color] = number
+            while selected_game[start] not in [';', ',']:
+                start -= 1
+                if start == 0:
+                    break
+            end = start
+            start -= 1
+            if start == 0:
+                break
+        start -= 1
+    return max_values['red'] * max_values['green'] * max_values['blue']
+
+
+def get_sum_of_powers_of_all_sets():
+    result = 0
+    with open('input.txt') as input_file:
+        games = input_file.readlines()
+        for selected_game in games:
+            power = get_power_of_set_of_cubes(selected_game.strip())
+            result += power
+    return result
+
+
 if __name__ == '__main__':
     print(f'Valid games number: {get_total_valid_games()}')
+    print(get_sum_of_powers_of_all_sets())

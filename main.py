@@ -1,6 +1,3 @@
-import sys
-
-
 def get_file_rows(path: str) -> list[str]:
     with open(path) as file:
         data = file.read()
@@ -36,10 +33,30 @@ def get_range_list_between_two_objects(raw_data: list[str]):
     return range_list
 
 
+# We cannot use the numbers anymore because there are too many to compute
+# We use the start and end (excluded) of the range
+def get_seeds_range(row: str) -> list[tuple[int, int]]:
+    numbers = []
+    number = ""
+    for char in row:
+        if char.isdigit():
+            number += char
+        else:
+            if number != "":
+                numbers.append(int(number))
+                number = ""
+    if number != "":
+        numbers.append(int(number))
+    seeds_range = []
+    for i in range(0, len(numbers), 2):
+        seeds_range.append((numbers[i], numbers[i] + numbers[i + 1]))
+    return seeds_range
+
+
 def get_lowest_location_number_of_the_initial_seeds():
     rows = get_file_rows('input.txt')
     seed_row = rows[0]
-    seed_numbers = get_numbers(seed_row)
+    seeds_ranges = get_seeds_range(seed_row)
     not_seeds_part = rows[2:]
     not_seeds_part_list: list[list[str]] = []
     start = 0
@@ -49,36 +66,34 @@ def get_lowest_location_number_of_the_initial_seeds():
             start = index + 1  # To exclude the blank lines
     if not_seeds_part[start:len(not_seeds_part)] not in not_seeds_part_list:
         not_seeds_part_list.append(not_seeds_part[start:len(not_seeds_part)])
-    range_list = []
+    range_container = []
     for index, part in enumerate(not_seeds_part_list):
-        range_list.insert(index, get_range_list_between_two_objects(part))
-    min_location = sys.maxsize
-    for seed_number in seed_numbers:
-        string_to_print = f'Seed {seed_number}, '
-        current_value = seed_number
-        for index, current_ranges in enumerate(range_list):
-            for current_range in current_ranges:
-                if current_range[0] <= current_value < current_range[1]:
-                    current_value += current_range[2]
+        range_container.insert(index, get_range_list_between_two_objects(part))
+    locations_ranges = seeds_ranges.copy()
+    for range_list in range_container:
+        updated_data = []
+        # We consider every possible interval
+        while len(locations_ranges) != 0:
+            start, end = locations_ranges.pop()
+            for current_range in range_list:
+                overlap_start = max(start, current_range[0])
+                overlap_end = min(end, current_range[1])
+                # Check if the intersection between the interval and the current range exist
+                if overlap_start < overlap_end:
+                    # If so we add that to the updated_data
+                    updated_data.append((overlap_start + current_range[2], overlap_end + current_range[2]))
+                    # We also need to check the possible external data interval,
+                    # so if they exist we add them to the location ranges to check in the internal for loop
+                    if overlap_start > start:
+                        locations_ranges.append((start, overlap_start))
+                    if end > overlap_end:
+                        locations_ranges.append((overlap_end, end))
                     break
-            if index == 0:
-                string_to_print += f'soil {current_value}, '
-            elif index == 1:
-                string_to_print += f'fertilizer {current_value}, '
-            elif index == 2:
-                string_to_print += f'water {current_value}, '
-            elif index == 3:
-                string_to_print += f'light {current_value}, '
-            elif index == 4:
-                string_to_print += f'temperature {current_value}, '
-            elif index == 5:
-                string_to_print += f'humidity {current_value}, '
-            elif index == 6:
-                string_to_print += f'location {current_value}'
-        print(string_to_print)
-        if min_location > current_value:
-            min_location = current_value
-    return min_location
+            else:
+                updated_data.append((start, end))
+        locations_ranges = updated_data
+
+    return min(locations_ranges)[0]
 
 
 if __name__ == '__main__':

@@ -22,13 +22,18 @@ def get_numbers(row: str) -> list[int]:
     return result
 
 
-def get_mapping_between_two_objects(raw_data: list[str]):
-    new_map = {}
+# The list contains every mapped range.
+# The range is composed by 3 values: the start of the range, the end of the range and the conversion value
+def get_range_list_between_two_objects(raw_data: list[str]):
+    range_list = []
     for i in range(1, len(raw_data)):
         temp_numbers = get_numbers(raw_data[i])
-        for j in range(0, temp_numbers[2]):
-            new_map[temp_numbers[1] + j] = temp_numbers[0] + j
-    return new_map
+        start = temp_numbers[1]
+        end = start + temp_numbers[2]
+        conversion_factor = temp_numbers[0] - temp_numbers[1]
+        new_range = [start, end, conversion_factor]
+        range_list.append(new_range)
+    return range_list
 
 
 def get_lowest_location_number_of_the_initial_seeds():
@@ -44,20 +49,18 @@ def get_lowest_location_number_of_the_initial_seeds():
             start = index + 1  # To exclude the blank lines
     if not_seeds_part[start:len(not_seeds_part)] not in not_seeds_part_list:
         not_seeds_part_list.append(not_seeds_part[start:len(not_seeds_part)])
-    mapping_list = []
+    range_list = []
     for index, part in enumerate(not_seeds_part_list):
-        mapping_list.insert(index, get_mapping_between_two_objects(part))
-    # Now we need to traverse all the mapping list until the end
-    # to know the location number corresponding to every seed
+        range_list.insert(index, get_range_list_between_two_objects(part))
     min_location = sys.maxsize
     for seed_number in seed_numbers:
         string_to_print = f'Seed {seed_number}, '
         current_value = seed_number
-        for index, mapping in enumerate(mapping_list):
-            if current_value in mapping.keys():
-                current_value = mapping[current_value]
-            # Any source numbers that aren't mapped correspond to the same destination number.
-            # So no change of the current value.
+        for index, current_ranges in enumerate(range_list):
+            for current_range in current_ranges:
+                if current_range[0] <= current_value < current_range[1]:
+                    current_value += current_range[2]
+                    break
             if index == 0:
                 string_to_print += f'soil {current_value}, '
             elif index == 1:
@@ -71,7 +74,7 @@ def get_lowest_location_number_of_the_initial_seeds():
             elif index == 5:
                 string_to_print += f'humidity {current_value}, '
             elif index == 6:
-                string_to_print += f'location {current_value}, '
+                string_to_print += f'location {current_value}'
         print(string_to_print)
         if min_location > current_value:
             min_location = current_value

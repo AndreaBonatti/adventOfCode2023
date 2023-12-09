@@ -1,16 +1,19 @@
-# This is a sample Python script.
-
-# Press Maiusc+F10 to execute it or replace it with your code.
-# Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
-
-
-def print_hi(name):
-    # Use a breakpoint in the code line below to debug your script.
-    print(f'Hi, {name}')  # Press Ctrl+F8 to toggle the breakpoint.
+def get_history_value(history: list[int]) -> int:
+    if all(value == 0 for value in history):
+        return 0
+    next_sequence = [b - a for a, b in zip(history, history[1:])]
+    difference = get_history_value(next_sequence)
+    return history[-1] + difference
 
 
-# Press the green button in the gutter to run the script.
+def get_sum_of_histories_values() -> int:
+    result = 0
+    rows = open('input.txt')
+    for row in rows:
+        history = list(map(int, row.split()))
+        result += get_history_value(history)
+    return result
+
+
 if __name__ == '__main__':
-    print_hi('PyCharm')
-
-# See PyCharm help at https://www.jetbrains.com/help/pycharm/
+    print(f'Sum of histories values: {get_sum_of_histories_values()}')

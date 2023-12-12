@@ -29,8 +29,8 @@ def get_sum_of_hot_spring_arrangements(row: str) -> int:
         # There could be 1 or more arrangements
         groups = [int(group) for group in contiguous_group_of_damaged_springs.split(',')]
         # Creation of all possible arrangements
-        arrangements = [row]
-        for i, char in enumerate(row):
+        arrangements = [list_of_springs]
+        for i, char in enumerate(list_of_springs):
             if char == '?':
                 new_arrangements = []
                 for arrangement in arrangements:
@@ -56,5 +56,44 @@ def get_sum_of_hot_springs_arrangements():
     return result
 
 
+def get_sum_of_hot_spring_arrangements_part_2(row: str) -> int:
+    result = 0
+    list_of_springs, contiguous_group_of_damaged_springs = row.split(' ')
+    list_of_springs = '?'.join([list_of_springs] * 5)
+    contiguous_group_of_damaged_springs = contiguous_group_of_damaged_springs
+    groups = [int(group) for group in contiguous_group_of_damaged_springs.split(',')] * 5
+    if '?' not in list_of_springs:
+        result += 1
+    else:
+        # There could be 1 or more arrangements
+        # Creation of all possible arrangements
+        arrangements = [list_of_springs]
+        for i, char in enumerate(list_of_springs):
+            if char == '?':
+                new_arrangements = []
+                for arrangement in arrangements:
+                    list_arrangement = list(arrangement)
+                    list_arrangement[i] = '.'
+                    new_arrangements.append("".join(list_arrangement))
+                    list_arrangement[i] = '#'
+                    new_arrangements.append("".join(list_arrangement))
+                arrangements = new_arrangements
+        # Add only the valids arrangements
+        for arrangement in arrangements:
+            if get_groups_arrangement(arrangement) == groups:
+                result += 1
+
+    return result
+
+
+def get_sum_of_hot_springs_arrangements_part_2():
+    matrix = get_file_matrix('test.txt')
+    result = 0
+    for row in matrix:
+        result += get_sum_of_hot_spring_arrangements_part_2(row)
+    return result
+
+
 if __name__ == '__main__':
-    print(f'Sum of all possibles hot springs arrangements: {get_sum_of_hot_springs_arrangements()}')
+    # print(f'Sum of all possibles hot springs arrangements: {get_sum_of_hot_springs_arrangements()}')
+    print(f'Part 2: sum of all possibles hot springs arrangements: {get_sum_of_hot_springs_arrangements_part_2()}')

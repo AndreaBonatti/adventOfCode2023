@@ -1,16 +1,56 @@
-# This is a sample Python script.
-
-# Press Maiusc+F10 to execute it or replace it with your code.
-# Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
+from heapq import heappop, heappush
 
 
-def print_hi(name):
-    # Use a breakpoint in the code line below to debug your script.
-    print(f'Hi, {name}')  # Press Ctrl+F8 to toggle the breakpoint.
+def get_file_rows(path: str) -> list[list[int]]:
+    with open(path) as file:
+        return [list(map(int, line.strip())) for line in file]
 
 
-# Press the green button in the gutter to run the script.
+def get_heat_loss() -> int:
+    rows = get_file_rows('input.txt')
+    # From top-left corner to the bottom-right corner
+    # Same direction max 3 times in a row
+    # Dijkstra's algorithm to find the shortest path between 2 points in a weighted graph
+    visited = set()
+    # heat_loss, row, column, row_direction, column_direction, times_same_direction
+    priority_queue = [(0, 0, 0, 0, 0, 0)]  # queue where each item has a special key that quantifies its priority
+    while priority_queue:
+        heat_loss, row, column, row_direction, column_direction, times_same_direction = heappop(priority_queue)
+        # Exit condition
+        if row == len(rows) - 1 and column == len(rows[0]) - 1:
+            return heat_loss
+        # To avoid loops we avoid to consider the same state
+        if (row, column, row_direction, column_direction, times_same_direction) in visited:
+            continue  # skip
+        visited.add((row, column, row_direction, column_direction, times_same_direction))
+        if times_same_direction < 3 and (row_direction, column_direction) != (0, 0):
+            next_row = row + row_direction
+            next_column = column + column_direction
+            # Out of bounds check
+            if 0 <= next_row < len(rows) and 0 <= next_column < len(rows[0]):
+                new_heat_loss = heat_loss + rows[next_row][next_column]
+                heappush(
+                    priority_queue,
+                    (new_heat_loss, next_row, next_column, row_direction, column_direction, times_same_direction + 1)
+                )
+        # Try all the 4 possible directions
+        for next_row_direction, next_column_direction in [(0, 1), (1, 0), (-1, 0), (0, -1)]:
+            # Direction is valid only if his not the current direction (already considered)
+            # and not the opposite of the current direction (going back)
+            if ((next_row_direction, next_column_direction) != (row_direction, column_direction)
+                    and (next_row_direction, next_column_direction) != (-row_direction, -column_direction)):
+                next_row = row + next_row_direction
+                next_column = column + next_column_direction
+                # Out of bounds check
+                if 0 <= next_row < len(rows) and 0 <= next_column < len(rows[0]):
+                    new_heat_loss = heat_loss + rows[next_row][next_column]
+                    # First time in this direction
+                    heappush(
+                        priority_queue,
+                        (new_heat_loss, next_row, next_column, next_row_direction, next_column_direction, 1)
+                    )
+    return 0
+
+
 if __name__ == '__main__':
-    print_hi('PyCharm')
-
-# See PyCharm help at https://www.jetbrains.com/help/pycharm/
+    print(f'Part 1: heat loss = {get_heat_loss()}')
